@@ -22,43 +22,40 @@ const queue = async (uri, username) => {
       return
     }
 
+    if (uri) {
+      // get only the track id from the link
+      const trackIdOnly = uri.substring(uri.lastIndexOf(':') + 1)
 
-      if (uri) {
+      // check length of song and return if it is longer than 10 minutes
+      const getTrackLength = await fetch(`https://api.spotify.com/v1/tracks/${trackIdOnly}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${user.spotifyAccessToken}`,
+        },
+      })
 
-      
-    // get only the track id from the link
-    const trackIdOnly = uri.substring(uri.lastIndexOf(':') + 1)
+      const trackLength = await getTrackLength.json()
 
-    // check length of song and return if it is longer than 10 minutes
-    const getTrackLength = await fetch(`https://api.spotify.com/v1/tracks/${trackIdOnly}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${user.spotifyAccessToken}`,
-      },
-    })
+      console.log(`Track length: ${trackLength.duration_ms}`)
 
-    const trackLength = await getTrackLength.json()
+      if (trackLength.duration_ms > user.songDurationLimit) {
+        twitchClient.say(
+          process.env.TWITCH_USERNAME,
+          `Sorry, that song is too long. The max duration is ${(user.songDurationLimit / 60000).toFixed(1)} minutes.`
+        )
+        return
+      }
 
-    console.log(`Track length: ${trackLength.duration_ms}`)
-
-    if (trackLength.duration_ms > user.songDurationLimit) {
-      twitchClient.say(
-        process.env.TWITCH_USERNAME,
-        `Sorry, that song is too long. The max duration is ${(user.songDurationLimit / 60000).toFixed(1)} minutes.`
-      )
-      return
+      if (res.status === 204) {
+        twitchClient.say(process.env.TWITCH_USERNAME, `Added ${username}'s song to the queue!`)
+      }
+      if (res.status === 404) {
+        twitchClient.say(
+          process.env.TWITCH_USERNAME,
+          'No active device found. The streamer must be playing music to add a song to the queue.'
+        )
+      }
     }
-
-    if (res.status === 204) {
-      twitchClient.say(process.env.TWITCH_USERNAME, `Added ${username}'s song to the queue!`)
-    }
-    if (res.status === 404) {
-      twitchClient.say(
-        process.env.TWITCH_USERNAME,
-        'No active device found. The streamer must be playing music to add a song to the queue.'
-      )
-    }
-  }
   } catch (err) {
     console.log(err)
   }
@@ -90,7 +87,50 @@ const searchSong = async (query) => {
   }
 }
 
+const skipSong = async () => {
+  await spotifyHandler()
+  const user = await User.findOne({ spotifyUsername: process.env.SPOTIFY_USERNAME })
+  try {
+    const res = await fetch('https://api.spotify.com/v1/me/player/next', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${user.spotifyAccessToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+    console.log(`Spotify skip response: ${res.status}`)
+    return res
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+const currentSong = async () => {
+  await spotifyHandler()
+  const user = await User.findOne({ spotifyUsername: process.env.SPOTIFY_USERNAME })
+  try {
+    const res = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${user.spotifyAccessToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+    const data = await res.json()
+    console.log(data)
+    twitchClient.say(
+      process.env.TWITCH_USERNAME,
+      `Now playing: ${data.item.name} by: ${data.item.artists[0].name} -- Link: ${data.item.external_urls.spotify}`
+    )
+    return data.item.name
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 module.exports = {
   queue,
   searchSong,
+  skipSong,
+  currentSong,
 }

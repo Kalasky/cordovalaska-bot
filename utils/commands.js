@@ -1,13 +1,13 @@
 const twitchClientSetup = require('./tmiSetup')
 const twitchClient = twitchClientSetup.setupTwitchClient()
-const { queue, searchSong } = require('./spotifyUtils')
+const { queue, searchSong, currentSong, skipSong } = require('./spotifyUtils')
 const User = require('../models/User')
 
 // utils
 const updateSongDurationLimit = async (newDuration) => {
   try {
     const user = await User.findOneAndUpdate(
-      { twitchUsername: process.env.TWITCH_USERNAME },
+      { spotifyUsername: process.env.SPOTIFY_USERNAME },
       { $set: { songDurationLimit: newDuration } },
       { new: true }
     )
@@ -18,7 +18,7 @@ const updateSongDurationLimit = async (newDuration) => {
 }
 
 const removeFromBlacklist = async (username) => {
-  const user = await User.findOne({ twitchUsername: process.env.TWITCH_USERNAME })
+  const user = await User.findOne({ spotifyUsername: process.env.SPOTIFY_USERNAME })
   // find the index of the username in the blacklist array
   const index = user.blacklist.indexOf(username)
   if (index > -1) {
@@ -29,7 +29,7 @@ const removeFromBlacklist = async (username) => {
 }
 
 const addToBlacklist = async (username) => {
-  const user = await User.findOne({ twitchUsername: process.env.TWITCH_USERNAME })
+  const user = await User.findOne({ spotifyUsername: process.env.SPOTIFY_USERNAME })
   // if user is already in the blacklist, return
   if (user.blacklist.includes(username)) {
     twitchClient.say(process.env.TWITCH_USERNAME, `User is already blacklisted.`)
@@ -120,9 +120,20 @@ const songDurationCommand = () => {
   })
 }
 
+const currentSongCommand = () => {
+  twitchClient.on('message', (channel, tags, message, self) => {
+    if (self) return
+    const command = message.slice(1).split(' ')[0].toLowerCase()
+    if (command === 'currentsong' || command === 'cs' || command === 'song' || command === 'nowplaying' || command === 'np') {
+      currentSong()
+    }
+  })
+}
+
 module.exports = {
   queueCommand,
   blacklistCommand,
   unblacklistCommand,
   songDurationCommand,
+  currentSongCommand,
 }
