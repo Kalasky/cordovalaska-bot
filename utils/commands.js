@@ -1,6 +1,6 @@
 const twitchClientSetup = require('./tmiSetup')
 const twitchClient = twitchClientSetup.setupTwitchClient()
-const { queue } = require('./spotifyUtils')
+const { queue, searchSong } = require('./spotifyUtils')
 const User = require('../models/User')
 
 // utils
@@ -54,9 +54,15 @@ const queueCommand = async () => {
     }
     if (command === 'queue' || (command === 'q' && args[0])) {
       const trackLink = args[0]
+
       let newLink = trackLink.replace('https://open.spotify.com/track/', 'spotify:track:')
       let trackId = newLink.substring(0, newLink.indexOf('?'))
 
+      if (!trackId.includes('spotify:track:')) {
+        const result = await searchSong(args.join(' '))
+        trackId = result
+        queue(trackId, tags.username)
+      }
       // if link doesnt have a ? in it, it means it doesnt have any query params
       if (!newLink.includes('?')) {
         trackId = newLink

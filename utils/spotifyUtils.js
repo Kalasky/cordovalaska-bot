@@ -15,7 +15,6 @@ const queue = async (uri, username) => {
       },
     })
     console.log(`Spotify queue response: ${res.status}`)
-    
 
     // if user is in the blacklist, return
     if (user.blacklist.includes(username)) {
@@ -55,7 +54,26 @@ const queue = async (uri, username) => {
         'No active device found. The streamer must be playing music to add a song to the queue.'
       )
     }
+  } catch (err) {
+    console.log(err)
+  }
+}
 
+const searchSong = async (query) => {
+  await spotifyHandler()
+  const user = await User.findOne({ spotifyUsername: process.env.SPOTIFY_USERNAME })
+  try {
+    let res = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=track&limit=1`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${user.spotifyAccessToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+    console.log(`Spotify search response: ${res.status}`)
+    const data = await res.json()
+    const trackId = data.tracks.items[0].uri
+    return trackId
   } catch (err) {
     console.log(err)
   }
@@ -63,4 +81,5 @@ const queue = async (uri, username) => {
 
 module.exports = {
   queue,
+  searchSong,
 }
