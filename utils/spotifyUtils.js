@@ -19,7 +19,7 @@ const queue = async (uri, username) => {
 
     // if user is in the blacklist, return
     if (user.blacklist.includes(username)) {
-      twitchClient.say(process.env.TWITCH_USERNAME, `Sorry ${username}, are blacklisted from adding songs to the queue.`)
+      twitchClient.say(process.env.TWITCH_USERNAME, `Sorry ${username}, is blacklisted from adding songs to the queue.`)
       return
     }
 
@@ -47,7 +47,7 @@ const queue = async (uri, username) => {
     }
 
     if (res.status === 204) {
-      twitchClient.say(process.env.TWITCH_USERNAME, `Song has been added to the queue.`)
+      twitchClient.say(process.env.TWITCH_USERNAME, `Added ${username}'s song to the queue!`)
     }
     if (res.status === 404) {
       twitchClient.say(
