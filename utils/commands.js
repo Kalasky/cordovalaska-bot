@@ -57,6 +57,11 @@ const queueCommand = async () => {
       let newLink = trackLink.replace('https://open.spotify.com/track/', 'spotify:track:')
       let trackId = newLink.substring(0, newLink.indexOf('?'))
 
+      // if link doesnt have a ? in it, it means it doesnt have any query params
+      if (!newLink.includes('?')) {
+        trackId = newLink
+      }
+
       if (!trackId.includes('spotify:track:')) {
         twitchClient.say(process.env.TWITCH_USERNAME, 'Sorry, that is not a track link.')
         return

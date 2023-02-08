@@ -15,6 +15,7 @@ const queue = async (uri, username) => {
       },
     })
     console.log(`Spotify queue response: ${res.status}`)
+    
 
     // if user is in the blacklist, return
     if (user.blacklist.includes(username)) {
@@ -35,6 +36,8 @@ const queue = async (uri, username) => {
 
     const trackLength = await getTrackLength.json()
 
+    console.log(`Track length: ${trackLength.duration_ms}`)
+
     if (trackLength.duration_ms > user.songDurationLimit) {
       twitchClient.say(
         process.env.TWITCH_USERNAME,
@@ -52,6 +55,7 @@ const queue = async (uri, username) => {
         'No active device found. The streamer must be playing music to add a song to the queue.'
       )
     }
+
   } catch (err) {
     console.log(err)
   }
