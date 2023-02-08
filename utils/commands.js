@@ -63,7 +63,7 @@ const queueCommand = async () => {
       }
 
       if (!trackId.includes('spotify:track:')) {
-        twitchClient.say(process.env.TWITCH_USERNAME, 'Sorry, that is not a track link.')
+        twitchClient.say(process.env.TWITCH_USERNAME, 'that song doesnt exist, look at this dummy Pepega')
         return
       }
 
