@@ -22,6 +22,10 @@ const queue = async (uri, username) => {
       return
     }
 
+
+      if (uri) {
+
+      
     // get only the track id from the link
     const trackIdOnly = uri.substring(uri.lastIndexOf(':') + 1)
 
@@ -54,6 +58,7 @@ const queue = async (uri, username) => {
         'No active device found. The streamer must be playing music to add a song to the queue.'
       )
     }
+  }
   } catch (err) {
     console.log(err)
   }
@@ -72,6 +77,12 @@ const searchSong = async (query) => {
     })
     console.log(`Spotify search response: ${res.status}`)
     const data = await res.json()
+
+    if (!data.tracks.items[0]) {
+      twitchClient.say(process.env.TWITCH_USERNAME, 'No song found from Spotify. Please try again.')
+      return
+    }
+
     const trackId = data.tracks.items[0].uri
     return trackId
   } catch (err) {

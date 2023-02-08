@@ -62,15 +62,11 @@ const queueCommand = async () => {
         const result = await searchSong(args.join(' '))
         trackId = result
         queue(trackId, tags.username)
+        return
       }
       // if link doesnt have a ? in it, it means it doesnt have any query params
       if (!newLink.includes('?')) {
         trackId = newLink
-      }
-
-      if (!trackId.includes('spotify:track:')) {
-        twitchClient.say(process.env.TWITCH_USERNAME, 'that song doesnt exist, look at this dummy Pepega')
-        return
       }
 
       queue(trackId, tags.username)
